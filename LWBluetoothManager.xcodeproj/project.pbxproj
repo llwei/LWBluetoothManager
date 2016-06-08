@@ -12,7 +12,7 @@
 		00AFFDAD1D066F1A00970CF7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDAB1D066F1A00970CF7 /* Main.storyboard */; };
 		00AFFDAF1D066F1A00970CF7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDAE1D066F1A00970CF7 /* Assets.xcassets */; };
 		00AFFDB21D066F1A00970CF7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDB01D066F1A00970CF7 /* LaunchScreen.storyboard */; };
-		00AFFDBB1D066F3300970CF7 /* LWBluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDBA1D066F3300970CF7 /* LWBluetoothManager.swift */; };
+		00AFFDBB1D066F3300970CF7 /* LWCentralManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */; };
 		00AFFDBD1D06A2CF00970CF7 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDBC1D06A2CF00970CF7 /* DetailViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -24,7 +24,7 @@
 		00AFFDAE1D066F1A00970CF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		00AFFDB11D066F1A00970CF7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		00AFFDB31D066F1A00970CF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00AFFDBA1D066F3300970CF7 /* LWBluetoothManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LWBluetoothManager.swift; sourceTree = "<group>"; };
+		00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LWCentralManager.swift; sourceTree = "<group>"; };
 		00AFFDBC1D06A2CF00970CF7 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,7 +73,7 @@
 		00AFFDB91D066F2100970CF7 /* Class */ = {
 			isa = PBXGroup;
 			children = (
-				00AFFDBA1D066F3300970CF7 /* LWBluetoothManager.swift */,
+				00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */,
 			);
 			name = Class;
 			sourceTree = "<group>";
@@ -149,7 +149,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00AFFDBB1D066F3300970CF7 /* LWBluetoothManager.swift in Sources */,
+				00AFFDBB1D066F3300970CF7 /* LWCentralManager.swift in Sources */,
 				00AFFDAA1D066F1A00970CF7 /* ViewController.swift in Sources */,
 				00AFFDA81D066F1A00970CF7 /* AppDelegate.swift in Sources */,
 				00AFFDBD1D06A2CF00970CF7 /* DetailViewController.swift in Sources */,
@@ -306,6 +306,7 @@
 				00AFFDB81D066F1A00970CF7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

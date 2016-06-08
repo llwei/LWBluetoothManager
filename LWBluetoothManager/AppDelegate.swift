@@ -16,10 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 
-        LWBluetoothManager.shareManager().addObserver(self,
+        LWCentralManager.shareManager().addObserver(self,
                                                       centralManagerState: { (flag) in
                                                         if flag {
-                                                            LWBluetoothManager.shareManager().startScanPeripherals(true)
+                                                            LWCentralManager.shareManager().startScanPeripherals(true)
                                                         }
             }, scanPeripheralHandler: { (central, discoverPeripheral, advertisementData, RSSI) in
                 
@@ -28,7 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }, peripheralConnectedHandler: { (peripheral, connected, error) in
                 
                 if connected {
-                    LWBluetoothManager.shareManager().stopScan()
+                    LWCentralManager.shareManager().stopScan()
                 }
                 
             }, peripheralDidUpdateValueHandler: { (peripheral, characteristic, error) in

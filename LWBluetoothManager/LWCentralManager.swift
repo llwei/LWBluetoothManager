@@ -28,12 +28,12 @@ private let kRetrieveOptionDic = "kRetrieveOptionDic"
 
 // MARK: - Private methods
 
-class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     
     // MARK:  Properties
     
-    private static let instance = LWBluetoothManager()
-    private var bleQueue = dispatch_queue_create("LWBluetoothManager", DISPATCH_QUEUE_SERIAL)
+    private static let instance = LWCentralManager()
+    private var bleQueue = dispatch_queue_create("LWCentralManager", DISPATCH_QUEUE_SERIAL)
     private var centralManager: CBCentralManager!
     
     private var connectedOptions = [String : [String : [String]]]()
@@ -46,7 +46,7 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     private override init() {
         super.init()
         
-        let restoreIdentifier = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] ?? NSStringFromClass(LWBluetoothManager.self)
+        let restoreIdentifier = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] ?? NSStringFromClass(LWCentralManager.self)
         
         centralManager = CBCentralManager(delegate: self,
                                           queue: bleQueue,
@@ -78,7 +78,10 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
             let peripherals = centralManager.retrievePeripheralsWithIdentifiers(nsuuids)
             for peripheral in peripherals {
                 for observer in observers {
-                    observer.scanPeripheralHandler?(central: centralManager, discoverPeripheral: peripheral, advertisementData: nil, RSSI: peripheral.RSSI)
+                    observer.scanPeripheralHandler?(central: centralManager,
+                                                    discoverPeripheral: peripheral,
+                                                    advertisementData: nil,
+                                                    RSSI: peripheral.RSSI)
                 }
             }
         }
@@ -143,7 +146,10 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         LWBLEPrint("发现设备:\n  peripheral: \(peripheral), advertisementData: \(advertisementData), RSSI: \(RSSI)")
         
         for observer in observers {
-            observer.scanPeripheralHandler?(central: central, discoverPeripheral: peripheral, advertisementData: advertisementData, RSSI: RSSI)
+            observer.scanPeripheralHandler?(central: central,
+                                            discoverPeripheral: peripheral,
+                                            advertisementData: advertisementData,
+                                            RSSI: RSSI)
         }
     }
     
@@ -153,7 +159,9 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         LWBLEPrint("连接设备成功:\n  peripheral: \(peripheral)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral, connected: true, error: nil)
+            observer.peripheralConnectedHandler?(peripheral: peripheral,
+                                                 connected: true,
+                                                 error: nil)
         }
         
         // Discover services
@@ -161,23 +169,31 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         peripheral.discoverServices(nil)
     }
     
-    func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+    func centralManager(central: CBCentralManager,
+                        didFailToConnectPeripheral peripheral: CBPeripheral,
+                                                   error: NSError?) {
         
         LWBLEPrint("连接设备失败:\n  peripheral: \(peripheral), error: \(error)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral, connected: false, error: error)
+            observer.peripheralConnectedHandler?(peripheral: peripheral,
+                                                 connected: false,
+                                                 error: error)
         }
         // Update connectedOptions
         connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
     }
     
-    func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+    func centralManager(central: CBCentralManager,
+                        didDisconnectPeripheral peripheral: CBPeripheral,
+                                                error: NSError?) {
         
         LWBLEPrint("设备断开连接:\n  peripheral: \(peripheral), error: \(error)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral, connected: false, error: error)
+            observer.peripheralConnectedHandler?(peripheral: peripheral,
+                                                 connected: false,
+                                                 error: error)
         }
         // Update connectedOptions
         connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
@@ -212,7 +228,9 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
     }
     
     
-    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
+    func peripheral(peripheral: CBPeripheral,
+                    didDiscoverCharacteristicsForService service: CBService,
+                                                         error: NSError?) {
         guard error == nil else {
             LWBLEPrint("寻找特征码出错：\(error)")
             return
@@ -237,15 +255,23 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         }
     }
     
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
+    func peripheral(peripheral: CBPeripheral,
+                    didUpdateValueForCharacteristic characteristic: CBCharacteristic,
+                                                    error: NSError?) {
         for observer in observers {
-            observer.peripheralDidUpdateValueHandler?(peripheral: peripheral, characteristic: characteristic, error: error)
+            observer.peripheralDidUpdateValueHandler?(peripheral: peripheral,
+                                                      characteristic: characteristic,
+                                                      error: error)
         }
     }
     
-    func peripheral(peripheral: CBPeripheral, didWriteValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
+    func peripheral(peripheral: CBPeripheral,
+                    didWriteValueForCharacteristic characteristic: CBCharacteristic,
+                                                   error: NSError?) {
         for observer in observers {
-            observer.peripheralDidWriteValueHandler?(peripheral: peripheral, characteristic: characteristic, error: error)
+            observer.peripheralDidWriteValueHandler?(peripheral: peripheral,
+                                                     characteristic: characteristic,
+                                                     error: error)
         }
     }
     
@@ -255,11 +281,11 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
 
 // MARK: - Public methods
 
-extension LWBluetoothManager {
+extension LWCentralManager {
 
     
-    static func shareManager() -> LWBluetoothManager {
-        return LWBluetoothManager.instance
+    static func shareManager() -> LWCentralManager {
+        return LWCentralManager.instance
     }
     
     
@@ -359,7 +385,9 @@ extension LWBluetoothManager {
         centralManager.cancelPeripheralConnection(peripheral)
         peripheral.delegate = nil
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral, connected: false, error: nil)
+            observer.peripheralConnectedHandler?(peripheral: peripheral,
+                                                 connected: false,
+                                                 error: nil)
         }
         // Update connectedOptions
         connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
