@@ -312,7 +312,7 @@ extension LWCentralManager {
     /**
      Starts scanning for peripherals
      */
-    func startScanPeripherals(allowDuplicates: Bool) {
+    func startScanPeripheralsWithServices(serviceUUIDs: [String]?, allowDuplicates: Bool) {
         guard supportHardware() else {
             LWBLEPrint("当前蓝牙不可用，无法开始扫描设备")
             return
@@ -326,7 +326,17 @@ extension LWCentralManager {
         }
         
         LWBLEPrint("开始扫描")
-        centralManager.scanForPeripheralsWithServices(nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey : allowDuplicates])
+        
+        var services: [CBUUID]?
+        if let serviceUUIDs = serviceUUIDs {
+            if serviceUUIDs.count > 0 {
+                services = [CBUUID]()
+                for uuid in serviceUUIDs {
+                    services?.append(CBUUID(string: uuid))
+                }
+            }
+        }
+        centralManager.scanForPeripheralsWithServices(services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : allowDuplicates])
         
         // Try to retrieve peripherals
         retrievePeripherals()
