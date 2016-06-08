@@ -127,6 +127,13 @@ class LWBluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelega
         }
     }
     
+    func centralManager(central: CBCentralManager, willRestoreState dict: [String : AnyObject]) {
+        
+        LWBLEPrint("CBCentralManagerRestoredStatePeripheralsKey: \(dict[CBCentralManagerRestoredStatePeripheralsKey])")
+        LWBLEPrint("CBCentralManagerRestoredStateScanServicesKey: \(dict[CBCentralManagerRestoredStateScanServicesKey])")
+        LWBLEPrint("CBCentralManagerRestoredStateScanOptionsKey: \(dict[CBCentralManagerRestoredStateScanOptionsKey])")
+    }
+    
     
     func centralManager(central: CBCentralManager,
                         didDiscoverPeripheral peripheral: CBPeripheral,
@@ -317,10 +324,13 @@ extension LWBluetoothManager {
      - parameter peripheral:            he <code>CBPeripheral</code> to be connected.
      - parameter notifyOnConnection:    A Boolean value that specifies whether the system should display an alert
                                         for a given peripheral if the app is suspended when a successful connection is made.
+                                        当应用挂起时，如果有一个连接成功时，是否想要系统为指定的peripheral显示一个提示。
      - parameter notifyOnDisconnection: A Boolean value that specifies whether the system should display a disconnection
                                         alert for a given peripheral if the app is suspended at the time of the disconnection.
+                                        当应用挂起时，如果连接断开时，是否想要系统为指定的peripheral显示一个断开连接的提示。
      - parameter notifyOnNotification:  A Boolean value that specifies whether the system should display an alert for all
                                         notifications received from a given peripheral if the app is suspended at the time.
+                                        当应用挂起时，使用该key值表示只要接收到给定peripheral端的通知就显示一个提示。
      - parameter options:               [serviceUUID : [characteristic]]
      */
     func connectPeripheral(peripheral: CBPeripheral,
