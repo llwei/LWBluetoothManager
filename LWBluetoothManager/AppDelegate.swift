@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         LWCentralManager.shareManager().addObserver(self,
                                                       centralManagerState: { (flag) in
                                                         if flag {
-                                                            LWCentralManager.shareManager().startScanPeripherals(true)
+                                                            LWCentralManager.shareManager().startScanPeripheralsWithServices(nil, allowDuplicates: true)
                                                         }
             }, scanPeripheralHandler: { (central, discoverPeripheral, advertisementData, RSSI) in
                 
