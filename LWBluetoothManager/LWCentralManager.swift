@@ -14,9 +14,9 @@ import CoreBluetooth
  
  - discussion TARGET -> Build Setting -> Custom Flags -> Other Swift Flags -> Debug add "-D DEBUG"
  */
-private func LWBLEPrint<T>(message: T, fileName: String = #file, methodName: String = #function, lineNumber: Int = #line) {
+private func LWBLEPrint<T>(_ message: T, fileName: String = #file, methodName: String = #function, lineNumber: Int = #line) {
     #if DEBUG
-        let str: String = (fileName as NSString).pathComponents.last!.stringByReplacingOccurrencesOfString("swift", withString: "")
+        let str: String = (fileName as NSString).pathComponents.last!.replacingOccurrences(of: "swift", with: "")
         print("\(str)\(methodName)[\(lineNumber)]: \(message)")
     #endif
 }
@@ -32,21 +32,21 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     
     // MARK:  Properties
     
-    private static let instance = LWCentralManager()
-    private var bleQueue = dispatch_queue_create("LWCentralManager", DISPATCH_QUEUE_SERIAL)
-    private var centralManager: CBCentralManager!
+    fileprivate static let instance = LWCentralManager()
+    fileprivate var bleQueue = DispatchQueue(label: "LWCentralManager", attributes: [])
+    fileprivate var centralManager: CBCentralManager!
     
-    private var connectedOptions = [String : [String : [String]]]()
-    private var observers = [LWObserver]()
+    fileprivate var connectedOptions = [String : [String : [String]]]()
+    fileprivate var observers = [LWObserver]()
     
 
     
     // MARK:  Initial
     
-    private override init() {
+    fileprivate override init() {
         super.init()
         
-        let restoreIdentifier = NSBundle.mainBundle().infoDictionary?["CFBundleIdentifier"] ?? NSStringFromClass(LWCentralManager.self)
+        let restoreIdentifier = Bundle.main.infoDictionary?["CFBundleIdentifier"] ?? NSStringFromClass(LWCentralManager.self)
         
         centralManager = CBCentralManager(delegate: self,
                                           queue: bleQueue,
@@ -59,70 +59,90 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     
     // MARK: Helper methods
     
+    fileprivate func supportHardware() -> Bool {
+        
+        switch centralManager.state {
+        case .poweredOff:
+            LWBLEPrint("当前设备的蓝牙为开启")
+        case .poweredOn:
+            LWBLEPrint("当前设备的蓝牙已开启")
+            return true
+        case .resetting:
+            LWBLEPrint("当前设备的蓝牙正在重启")
+        case .unauthorized:
+            LWBLEPrint("当前App未获得用户对蓝牙的调用许可")
+        case .unknown:
+            LWBLEPrint("当前蓝牙状态未知")
+        case .unsupported:
+            LWBLEPrint("当前设备不支持蓝牙功能")
+        }
+        return false
+    }
+    
     /**
      Attempts to retrieve the <code>CBPeripheral</code> object(s) with the corresponding <i>identifiers</i>.
      */
-    private func retrievePeripherals() {
-        guard let optionDic = NSUserDefaults.standardUserDefaults().dictionaryForKey(kRetrieveOptionDic) else { return }
+    fileprivate func retrievePeripherals() {
+        guard let optionDic = UserDefaults.standard.dictionary(forKey: kRetrieveOptionDic) else { return }
         
         // optionDic: [identifier : [serviceUUID : [characteristic]]]
         
-        var nsuuids = [NSUUID]()
+        var nsuuids = [UUID]()
         for identifier in optionDic.keys {
-            if let nsuuid = NSUUID(UUIDString: identifier) {
+            if let nsuuid = UUID(uuidString: identifier) {
                 nsuuids.append(nsuuid)
             }
         }
         
         if nsuuids.count > 0 {
-            let peripherals = centralManager.retrievePeripheralsWithIdentifiers(nsuuids)
+            let peripherals = centralManager.retrievePeripherals(withIdentifiers: nsuuids)
             for peripheral in peripherals {
                 for observer in observers {
-                    observer.scanPeripheralHandler?(central: centralManager,
-                                                    discoverPeripheral: peripheral,
-                                                    advertisementData: nil,
-                                                    RSSI: peripheral.RSSI)
+                    observer.scanPeripheralHandler?(centralManager,
+                                                    peripheral,
+                                                    nil,
+                                                    peripheral.rssi)
                 }
             }
         }
     }
     
     
-    private func retrieveConnectedPeripherals() {
-        guard let optionDic = NSUserDefaults.standardUserDefaults().dictionaryForKey(kRetrieveOptionDic) else { return }
+    fileprivate func retrieveConnectedPeripherals() {
+        guard let optionDic = UserDefaults.standard.dictionary(forKey: kRetrieveOptionDic) else { return }
         
         // optionDic: [identifier : [serviceUUID : [characteristic]]]
         
         var cbuuids = [CBUUID]()
         for identifier in optionDic.keys {
-            if let nsuuid = NSUUID(UUIDString: identifier), let value = optionDic[identifier] as? [String : [String]] {
-                let cbuuid = CBUUID(NSUUID: nsuuid)
+            if let nsuuid = UUID(uuidString: identifier), let value = optionDic[identifier] as? [String : [String]] {
+                let cbuuid = CBUUID(nsuuid: nsuuid)
                 cbuuids.append(cbuuid)
                 // Update connectedOptions
                 connectedOptions.updateValue(value, forKey: identifier)
             }
         }
         if cbuuids.count > 0 {
-            let peripherals = centralManager.retrieveConnectedPeripheralsWithServices(cbuuids)
+            let peripherals = centralManager.retrieveConnectedPeripherals(withServices: cbuuids)
             for peripheral in peripherals {
-                centralManager.connectPeripheral(peripheral, options: nil)
+                centralManager.connect(peripheral, options: nil)
             }
         }
     }
     
     
-    private func cleanup() {
-        connectedOptions.removeAll(keepCapacity: false)
+    fileprivate func cleanup() {
+        connectedOptions.removeAll(keepingCapacity: false)
     }
     
     
     
     // MARK: CBCentralManagerDelegate
     
-    func centralManagerDidUpdateState(central: CBCentralManager) {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
         
         for observer in observers {
-            observer.centralManagerStateHandler?(flag: supportHardware())
+            observer.centralManagerStateHandler?(supportHardware())
         }
         
         if !supportHardware() {
@@ -130,7 +150,7 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         }
     }
     
-    func centralManager(central: CBCentralManager, willRestoreState dict: [String : AnyObject]) {
+    func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
         
         LWBLEPrint("CBCentralManagerRestoredStatePeripheralsKey: \(dict[CBCentralManagerRestoredStatePeripheralsKey])")
         LWBLEPrint("CBCentralManagerRestoredStateScanServicesKey: \(dict[CBCentralManagerRestoredStateScanServicesKey])")
@@ -138,30 +158,30 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     }
     
     
-    func centralManager(central: CBCentralManager,
-                        didDiscoverPeripheral peripheral: CBPeripheral,
-                                              advertisementData: [String : AnyObject],
-                                              RSSI: NSNumber) {
+    func centralManager(_ central: CBCentralManager,
+                        didDiscover peripheral: CBPeripheral,
+                                              advertisementData: [String : Any],
+                                              rssi RSSI: NSNumber) {
         
         LWBLEPrint("发现设备:\n  peripheral: \(peripheral), advertisementData: \(advertisementData), RSSI: \(RSSI)")
         
         for observer in observers {
-            observer.scanPeripheralHandler?(central: central,
-                                            discoverPeripheral: peripheral,
-                                            advertisementData: advertisementData,
-                                            RSSI: RSSI)
+            observer.scanPeripheralHandler?(central,
+                                            peripheral,
+                                            advertisementData,
+                                            RSSI)
         }
     }
     
     
-    func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         
         LWBLEPrint("连接设备成功:\n  peripheral: \(peripheral)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral,
-                                                 connected: true,
-                                                 error: nil)
+            observer.peripheralConnectedHandler?(peripheral,
+                                                 true,
+                                                 nil)
         }
         
         // Discover services
@@ -169,40 +189,40 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         peripheral.discoverServices(nil)
     }
     
-    func centralManager(central: CBCentralManager,
-                        didFailToConnectPeripheral peripheral: CBPeripheral,
-                                                   error: NSError?) {
+    func centralManager(_ central: CBCentralManager,
+                        didFailToConnect peripheral: CBPeripheral,
+                                                   error: Error?) {
         
         LWBLEPrint("连接设备失败:\n  peripheral: \(peripheral), error: \(error)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral,
-                                                 connected: false,
-                                                 error: error)
+            observer.peripheralConnectedHandler?(peripheral,
+                                                 false,
+                                                 error)
         }
         // Update connectedOptions
-        connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
+        connectedOptions.removeValue(forKey: peripheral.identifier.uuidString)
     }
     
-    func centralManager(central: CBCentralManager,
+    func centralManager(_ central: CBCentralManager,
                         didDisconnectPeripheral peripheral: CBPeripheral,
-                                                error: NSError?) {
+                                                error: Error?) {
         
         LWBLEPrint("设备断开连接:\n  peripheral: \(peripheral), error: \(error)")
         
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral,
-                                                 connected: false,
-                                                 error: error)
+            observer.peripheralConnectedHandler?(peripheral,
+                                                 false,
+                                                 error)
         }
         // Update connectedOptions
-        connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
+        connectedOptions.removeValue(forKey: peripheral.identifier.uuidString)
     }
     
     
     // MARK: CBPeripheralDelegate
     
-    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard error == nil else {
             LWBLEPrint("寻找服务码出错：\(error)")
             return
@@ -213,12 +233,12 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
             for service in services {
                 LWBLEPrint("发现服务码：\(services)")
                 
-                if let serviceDic = connectedOptions[peripheral.identifier.UUIDString] {
+                if let serviceDic = connectedOptions[peripheral.identifier.uuidString] {
                     for key in serviceDic.keys {
-                        if service.UUID.UUIDString == key {
+                        if service.uuid.uuidString == key {
                             LWBLEPrint("已找到指定了服务码：\(key)")
                             // Discover characteristics
-                            peripheral.discoverCharacteristics(nil, forService: service)
+                            peripheral.discoverCharacteristics(nil, for: service)
                             break
                         }
                     }
@@ -228,9 +248,9 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     }
     
     
-    func peripheral(peripheral: CBPeripheral,
-                    didDiscoverCharacteristicsForService service: CBService,
-                                                         error: NSError?) {
+    func peripheral(_ peripheral: CBPeripheral,
+                    didDiscoverCharacteristicsFor service: CBService,
+                                                         error: Error?) {
         guard error == nil else {
             LWBLEPrint("寻找特征码出错：\(error)")
             return
@@ -241,12 +261,12 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
             for characteristic in characteristics {
                 LWBLEPrint("发现特征码：\(characteristic)")
                 
-                if let characteristicStrings = connectedOptions[peripheral.identifier.UUIDString]?[service.UUID.UUIDString] {
+                if let characteristicStrings = connectedOptions[peripheral.identifier.uuidString]?[service.uuid.uuidString] {
                     for characteristicString in characteristicStrings {
-                        if characteristic.UUID.UUIDString == characteristicString {
+                        if characteristic.uuid.uuidString == characteristicString {
                             LWBLEPrint("监听指定的特征码")
                             // Read characteristic value
-                            peripheral.readValueForCharacteristic(characteristic)
+                            peripheral.readValue(for: characteristic)
                             break
                         }
                     }
@@ -255,27 +275,27 @@ class LWCentralManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         }
     }
     
-    func peripheral(peripheral: CBPeripheral,
-                    didUpdateValueForCharacteristic characteristic: CBCharacteristic,
-                                                    error: NSError?) {
+    func peripheral(_ peripheral: CBPeripheral,
+                    didUpdateValueFor characteristic: CBCharacteristic,
+                                                    error: Error?) {
         for observer in observers {
-            observer.peripheralDidUpdateValueHandler?(peripheral: peripheral,
-                                                      characteristic: characteristic,
-                                                      error: error)
+            observer.peripheralDidUpdateValueHandler?(peripheral,
+                                                      characteristic,
+                                                      error)
         }
     }
     
-    func peripheral(peripheral: CBPeripheral,
-                    didWriteValueForCharacteristic characteristic: CBCharacteristic,
-                                                   error: NSError?) {
+    func peripheral(_ peripheral: CBPeripheral,
+                    didWriteValueFor characteristic: CBCharacteristic,
+                                                   error: Error?) {
         for observer in observers {
-            observer.peripheralDidWriteValueHandler?(peripheral: peripheral,
-                                                     characteristic: characteristic,
-                                                     error: error)
+            observer.peripheralDidWriteValueHandler?(peripheral,
+                                                     characteristic,
+                                                     error)
         }
     }
     
-    
+
 }
 
 
@@ -289,30 +309,10 @@ extension LWCentralManager {
     }
     
     
-    private func supportHardware() -> Bool {
-        
-        switch centralManager.state {
-        case .PoweredOff:
-            LWBLEPrint("当前设备的蓝牙为开启")
-        case .PoweredOn:
-            LWBLEPrint("当前设备的蓝牙已开启")
-            return true
-        case .Resetting:
-            LWBLEPrint("当前设备的蓝牙正在重启")
-        case .Unauthorized:
-            LWBLEPrint("当前App未获得用户对蓝牙的调用许可")
-        case .Unknown:
-            LWBLEPrint("当前蓝牙状态未知")
-        case .Unsupported:
-            LWBLEPrint("当前设备不支持蓝牙功能")
-        }
-        return false
-    }
-    
     /**
      Starts scanning for peripherals
      */
-    func startScanPeripheralsWithServices(serviceUUIDs: [String]?, allowDuplicates: Bool) {
+    func startScanPeripheralsWithServices(_ serviceUUIDs: [String]?, allowDuplicates: Bool) {
         guard supportHardware() else {
             LWBLEPrint("当前蓝牙不可用，无法开始扫描设备")
             return
@@ -336,7 +336,7 @@ extension LWCentralManager {
                 }
             }
         }
-        centralManager.scanForPeripheralsWithServices(services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : allowDuplicates])
+        centralManager.scanForPeripherals(withServices: services, options: [CBCentralManagerScanOptionAllowDuplicatesKey : allowDuplicates])
         
         // Try to retrieve peripherals
         retrievePeripherals()
@@ -369,19 +369,19 @@ extension LWCentralManager {
                                         当应用挂起时，使用该key值表示只要接收到给定peripheral端的通知就显示一个提示。
      - parameter options:               [serviceUUID : [characteristic]]
      */
-    func connectPeripheral(peripheral: CBPeripheral,
+    func connectPeripheral(_ peripheral: CBPeripheral,
                            notifyOnConnection: Bool,
                            notifyOnDisconnection: Bool,
                            notifyOnNotification: Bool,
                            options: [String : [String]]) {
         
-        guard peripheral.state == .Disconnected else {
+        guard peripheral.state == .disconnected else {
             LWBLEPrint("peripheral: \(peripheral) 当前不是断开状态，无法尝试链接")
             return
         }
         
-        connectedOptions.updateValue(options, forKey: peripheral.identifier.UUIDString)
-        centralManager.connectPeripheral(peripheral, options: [
+        connectedOptions.updateValue(options, forKey: peripheral.identifier.uuidString)
+        centralManager.connect(peripheral, options: [
             CBConnectPeripheralOptionNotifyOnConnectionKey : notifyOnConnection,
             CBConnectPeripheralOptionNotifyOnDisconnectionKey : notifyOnDisconnection,
             CBConnectPeripheralOptionNotifyOnNotificationKey : notifyOnNotification]
@@ -389,22 +389,22 @@ extension LWCentralManager {
     }
     
     
-    func cancelConnectPeripheral(peripheral: CBPeripheral) {
-        guard peripheral.state == .Connected else { return }
+    func cancelConnectPeripheral(_ peripheral: CBPeripheral) {
+        guard peripheral.state == .connected else { return }
         
         centralManager.cancelPeripheralConnection(peripheral)
         peripheral.delegate = nil
         for observer in observers {
-            observer.peripheralConnectedHandler?(peripheral: peripheral,
-                                                 connected: false,
-                                                 error: nil)
+            observer.peripheralConnectedHandler?(peripheral,
+                                                 false,
+                                                 nil)
         }
         // Update connectedOptions
-        connectedOptions.removeValueForKey(peripheral.identifier.UUIDString)
+        connectedOptions.removeValue(forKey: peripheral.identifier.uuidString)
     }
     
     
-    func addObserver(observer: NSObject,
+    func addObserver(_ observer: NSObject,
                      centralManagerState stateHandler: CentralManagerStateHandler?,
                                          scanPeripheralHandler: ScanPeripheralsHandler?,
                                          peripheralConnectedHandler: PeripheralConnectedHandler?,
@@ -424,7 +424,7 @@ extension LWCentralManager {
     }
     
     
-    func removeObserver(observer: NSObject) {
+    func removeObserver(_ observer: NSObject) {
         observers = observers.filter({ $0.objectSelf != observer })
     }
     
@@ -437,22 +437,22 @@ extension LWCentralManager {
      */
     func addSaveDevice(mightBeAppointBySystem optionKey: String, optionValue: [String : [String]]) {
         
-        var storedDevices = NSUserDefaults.standardUserDefaults().dictionaryForKey(kRetrieveOptionDic) as? [String : [String : [String]]]
+        var storedDevices = UserDefaults.standard.dictionary(forKey: kRetrieveOptionDic) as? [String : [String : [String]]]
         if storedDevices == nil {
             storedDevices = [String : [String : [String]]]()
         }
         
         storedDevices!.updateValue(optionValue, forKey: optionKey)
-        NSUserDefaults.standardUserDefaults().setObject(storedDevices!, forKey: kRetrieveOptionDic)
-        NSUserDefaults.standardUserDefaults().synchronize()
+        UserDefaults.standard.set(storedDevices!, forKey: kRetrieveOptionDic)
+        UserDefaults.standard.synchronize()
     }
     
     func removeDevice(mightBeAppointBySystem optionKey: String) {
-        guard var storedDevices = NSUserDefaults.standardUserDefaults().dictionaryForKey(kRetrieveOptionDic) as? [String : [String : [String]]] else { return }
+        guard var storedDevices = UserDefaults.standard.dictionary(forKey: kRetrieveOptionDic) as? [String : [String : [String]]] else { return }
         
-        storedDevices.removeValueForKey(optionKey)
-        NSUserDefaults.standardUserDefaults().setObject(storedDevices, forKey: kRetrieveOptionDic)
-        NSUserDefaults.standardUserDefaults().synchronize()
+        storedDevices.removeValue(forKey: optionKey)
+        UserDefaults.standard.set(storedDevices, forKey: kRetrieveOptionDic)
+        UserDefaults.standard.synchronize()
     }
     
 }
@@ -460,11 +460,11 @@ extension LWCentralManager {
 
 // MARK: - LWObserver
 
-typealias CentralManagerStateHandler = ((flag: Bool) -> Void)
-typealias ScanPeripheralsHandler = ((central: CBCentralManager, discoverPeripheral: CBPeripheral, advertisementData: [String : AnyObject]?, RSSI: NSNumber?) -> Void)
-typealias PeripheralConnectedHandler = ((peripheral: CBPeripheral, connected: Bool, error: NSError?) -> Void)
-typealias PeripheralDidWriteValueHandler = ((peripheral: CBPeripheral, characteristic: CBCharacteristic, error: NSError?) -> Void)
-typealias PeripheralDidUpdateValueHandler = ((peripheral: CBPeripheral, characteristic: CBCharacteristic, error: NSError?) -> Void)
+typealias CentralManagerStateHandler = ((_ flag: Bool) -> Void)
+typealias ScanPeripheralsHandler = ((_ central: CBCentralManager, _ discoverPeripheral: CBPeripheral, _ advertisementData: [String : Any]?, _ RSSI: NSNumber?) -> Void)
+typealias PeripheralConnectedHandler = ((_ peripheral: CBPeripheral, _ connected: Bool, _ error: Error?) -> Void)
+typealias PeripheralDidWriteValueHandler = ((_ peripheral: CBPeripheral, _ characteristic: CBCharacteristic, _ error: Error?) -> Void)
+typealias PeripheralDidUpdateValueHandler = ((_ peripheral: CBPeripheral, _ characteristic: CBCharacteristic, _ error: Error?) -> Void)
 
 
 private class LWObserver: NSObject {
