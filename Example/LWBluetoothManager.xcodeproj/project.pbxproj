@@ -7,16 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0089D8401DAA2891002E0E82 /* LWCentralManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0089D83F1DAA2891002E0E82 /* LWCentralManager.swift */; };
 		00AFFDA81D066F1A00970CF7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDA71D066F1A00970CF7 /* AppDelegate.swift */; };
 		00AFFDAA1D066F1A00970CF7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDA91D066F1A00970CF7 /* ViewController.swift */; };
 		00AFFDAD1D066F1A00970CF7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDAB1D066F1A00970CF7 /* Main.storyboard */; };
 		00AFFDAF1D066F1A00970CF7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDAE1D066F1A00970CF7 /* Assets.xcassets */; };
 		00AFFDB21D066F1A00970CF7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00AFFDB01D066F1A00970CF7 /* LaunchScreen.storyboard */; };
-		00AFFDBB1D066F3300970CF7 /* LWCentralManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */; };
 		00AFFDBD1D06A2CF00970CF7 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AFFDBC1D06A2CF00970CF7 /* DetailViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0089D83F1DAA2891002E0E82 /* LWCentralManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LWCentralManager.swift; sourceTree = "<group>"; };
 		00AFFDA41D066F1A00970CF7 /* LWBluetoothManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LWBluetoothManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		00AFFDA71D066F1A00970CF7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		00AFFDA91D066F1A00970CF7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -24,7 +25,6 @@
 		00AFFDAE1D066F1A00970CF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		00AFFDB11D066F1A00970CF7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		00AFFDB31D066F1A00970CF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LWCentralManager.swift; sourceTree = "<group>"; };
 		00AFFDBC1D06A2CF00970CF7 /* DetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,7 +58,7 @@
 		00AFFDA61D066F1A00970CF7 /* LWBluetoothManager */ = {
 			isa = PBXGroup;
 			children = (
-				00AFFDB91D066F2100970CF7 /* Class */,
+				0089D83F1DAA2891002E0E82 /* LWCentralManager.swift */,
 				00AFFDA71D066F1A00970CF7 /* AppDelegate.swift */,
 				00AFFDA91D066F1A00970CF7 /* ViewController.swift */,
 				00AFFDBC1D06A2CF00970CF7 /* DetailViewController.swift */,
@@ -68,14 +68,6 @@
 				00AFFDB31D066F1A00970CF7 /* Info.plist */,
 			);
 			path = LWBluetoothManager;
-			sourceTree = "<group>";
-		};
-		00AFFDB91D066F2100970CF7 /* Class */ = {
-			isa = PBXGroup;
-			children = (
-				00AFFDBA1D066F3300970CF7 /* LWCentralManager.swift */,
-			);
-			name = Class;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -151,7 +143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00AFFDBB1D066F3300970CF7 /* LWCentralManager.swift in Sources */,
+				0089D8401DAA2891002E0E82 /* LWCentralManager.swift in Sources */,
 				00AFFDAA1D066F1A00970CF7 /* ViewController.swift in Sources */,
 				00AFFDA81D066F1A00970CF7 /* AppDelegate.swift in Sources */,
 				00AFFDBD1D06A2CF00970CF7 /* DetailViewController.swift in Sources */,
